@@ -23,8 +23,7 @@ jobs:
         run: npm install
 
       - name: Skip lint
-  run: echo "Skipping lint step"
-
+        run: echo "Skipping lint step"
 
       - name: Type check
         run: npm run type-check --if-present
