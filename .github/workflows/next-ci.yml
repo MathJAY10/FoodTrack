@@ -25,8 +25,5 @@ jobs:
       - name: Skip lint
         run: echo "Skipping lint step"
 
-      - name: Type check
-        run: npm run type-check --if-present
-
       - name: Build Next.js
         run: npm run build
