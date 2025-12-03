@@ -1,18 +1,31 @@
+import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
+
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
   try {
-    const { searchParams } = new URL(request.url)
-    const foodId = searchParams.get("foodId")
-    if (!foodId) return Response.json({ error: "Missing foodId" }, { status: 400 })
-    // TODO: Query Prisma FoodItem with nutrition + recipe
-    return Response.json({
-      id: foodId,
-      name: "Apple",
-      imageUrl: "https://via.placeholder.com/300",
-      nutrition: { calories: 95, protein: 0.5, carbs: 25, fat: 0.3, vitamins: { vitaminC: 5.7, vitaminA: 54 } },
-      recipe: { ingredients: ["1 Apple"], instructions: "Wash and eat" },
-      dailyCalories: 190,
-    })
+    const { searchParams } = new URL(request.url);
+    const foodId = searchParams.get('foodId');
+
+    if (!foodId) {
+      return NextResponse.json({ error: 'Missing foodId' }, { status: 400 });
+    }
+
+    const food = await prisma.foodLog.findUnique({
+      where: { id: foodId },
+    });
+
+    if (!food) {
+      return NextResponse.json({ error: 'Food not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ food });
   } catch (error) {
-    return Response.json({ error: "Failed to fetch details" }, { status: 500 })
+    console.error('Food details error:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to fetch food details' },
+      { status: 500 }
+    );
   }
 }

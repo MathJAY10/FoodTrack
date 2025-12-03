@@ -1,37 +1,39 @@
-import { v2 as cloudinary } from 'cloudinary';
+import { v2 as cloudinary } from 'cloudinary'
+import { NextResponse } from 'next/server'
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+  timeout: 60000,
+})
 
 export async function POST(request) {
   try {
-    const formData = await request.formData();
-    const file = formData.get("file");
-
-    if (!file) {
-      return Response.json({ error: "No file provided" }, { status: 400 });
-    }
-
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const buffer = await request.arrayBuffer()
 
     const result = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: 'food-tracker', resource_type: 'auto' },
+        { resource_type: 'auto' },
         (error, result) => {
-          if (error) reject(error);
-          resolve(result);
+          if (error) reject(error)
+          else resolve(result)
         }
-      );
-      uploadStream.end(buffer);
-    });
+      )
 
-    return Response.json({ imageUrl: result.secure_url });
+      uploadStream.on('error', reject)
+      uploadStream.end(Buffer.from(buffer))
+    })
+
+    return NextResponse.json({ 
+      url: result.secure_url,
+      imageUrl: result.secure_url 
+    })
   } catch (error) {
-    console.error("Upload error:", error);
-    return Response.json({ error: "Upload failed" }, { status: 500 });
+    console.error('Upload error:', error)
+    return NextResponse.json(
+      { error: error.message || 'Upload failed' },
+      { status: 500 }
+    )
   }
 }

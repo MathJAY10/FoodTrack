@@ -1,11 +1,24 @@
+import { PrismaClient } from '@prisma/client'
+import { NextResponse } from 'next/server'
+
+const prisma = new PrismaClient()
+
 export async function GET(request) {
   try {
-    // TODO: Query Prisma FoodLog.findMany
-    return Response.json([
-      { id: "1", name: "Apple", imageUrl: "https://via.placeholder.com/300" },
-      { id: "2", name: "Chicken", imageUrl: "https://via.placeholder.com/300" },
-    ])
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get('userId')
+
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID required' }, { status: 400 })
+    }
+
+    const foods = await prisma.foodLog.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    return NextResponse.json({ foods })
   } catch (error) {
-    return Response.json({ error: "Failed to fetch foods" }, { status: 500 })
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
