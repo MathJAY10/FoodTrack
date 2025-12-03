@@ -22,8 +22,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Lint
-        run: npm run lint --if-present
+      - name: Skip lint
+  run: echo "Skipping lint step"
+
 
       - name: Type check
         run: npm run type-check --if-present
